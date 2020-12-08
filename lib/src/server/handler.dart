@@ -120,8 +120,9 @@ class ServerHandler_ extends ServiceCall {
     }
     final serviceName = pathSegments[1];
     final methodName = pathSegments[2];
-    final clientEncodings = _clientMetadata['grpc-accept-encoding'].split(',');
     if (_codecRegistry != null) {
+      final clientEncodings =
+          _clientMetadata['grpc-accept-encoding']?.split(',') ?? [];
       final clientEncoding = clientEncodings.firstWhere(
           (element) => _codecRegistry.lookupCodec(element) != null,
           orElse: () => '');

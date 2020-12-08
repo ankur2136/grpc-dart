@@ -27,15 +27,14 @@ class Http2TransportStream extends GrpcTransportStream {
   final Stream<GrpcMessage> incomingMessages;
   final StreamController<List<int>> _outgoingMessages = StreamController();
   final ErrorHandler _onError;
-  final CodecRegistry _codecRegistry;
 
   StreamSink<List<int>> get outgoingMessages => _outgoingMessages.sink;
 
   Http2TransportStream(
-      this._transportStream, this._onError, this._codecRegistry)
+      this._transportStream, this._onError, CodecRegistry codecRegistry)
       : incomingMessages = _transportStream.incomingMessages
             .transform(GrpcHttpDecoder())
-            .transform(grpcDecompressor(codecRegistry: _codecRegistry)) {
+            .transform(grpcDecompressor(codecRegistry: codecRegistry)) {
     _outgoingMessages.stream
         .map(frame)
         .map<StreamMessage>((bytes) => DataStreamMessage(bytes))

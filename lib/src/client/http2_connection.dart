@@ -155,7 +155,7 @@ class Http2ClientConnection implements connection.ClientConnection {
         _transportConnector.authority, path, timeout, metadata,
         userAgent: options.userAgent,
         codec: callOptions.metadata['grpc-accept-encoding'] ??
-            options.codecRegistry.encodings());
+            options.codecRegistry?.encodings());
     final stream = _transportConnection.makeRequest(headers);
     return Http2TransportStream(
       stream,
@@ -281,7 +281,7 @@ class Http2ClientConnection implements connection.ClientConnection {
     Duration timeout,
     Map<String, String> metadata, {
     String userAgent,
-    String codec = 'identity',
+    String codec,
   }) {
     final headers = [
       _methodPost,
@@ -295,7 +295,7 @@ class Http2ClientConnection implements connection.ClientConnection {
     headers.addAll([
       _contentTypeGrpc,
       _teTrailers,
-      Header.ascii('grpc-accept-encoding', codec),
+      if (codec != null) Header.ascii('grpc-accept-encoding', codec),
       Header.ascii('user-agent', userAgent ?? defaultUserAgent),
     ]);
     metadata?.forEach((key, value) {
