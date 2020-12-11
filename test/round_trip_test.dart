@@ -75,6 +75,37 @@ main() async {
     server.shutdown();
   });
 
+  testTcpAndUds('Error when incoming unaccepted codec', (address) async {
+    // Server accepts only IdentityCodec.
+    final Server server = Server([TestService()], const [], CodecRegistry());
+    await server.serve(address: address, port: 0);
+
+    final channel = FixedConnectionClientChannel(
+      Http2ClientConnection(
+        address,
+        server.port,
+        ChannelOptions(
+          credentials: ChannelCredentials.insecure(),
+          codecRegistry: CodecRegistry(codecs: const [GzipCodec()]),
+        ),
+      ),
+    );
+    final testClient = TestClient(channel);
+    await testClient
+        .stream(
+          TestService.requestFiniteStream,
+          options: CallOptions(compression: const GzipCodec()),
+        )
+        .listen(
+          expectAsync1((message) {}, count: 0),
+          onError: expectAsync1(
+            (error) => expect(error, isA<GrpcError>()),
+            count: 1,
+          ),
+        );
+    await server.shutdown();
+  });
+
   testTcpAndUds('round trip with outgoing and incoming compression',
       (address) async {
     final Server server = Server(
